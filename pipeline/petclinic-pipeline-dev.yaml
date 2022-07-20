@@ -1,0 +1,65 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: petclinic-deploy-dev
+spec:
+  workspaces:
+  - name: app-source
+  params:
+  - name: APP_NAME
+    type: string
+    default: spring-petclinic
+    description: The application deployment name
+  - name: APP_GIT_URL
+    type: string
+    default: https://github.com/revanpeddi1/realtimeproject.git
+    description: The application git repository url
+  - name: APP_GIT_REVISION
+    type: string
+    default: master
+    description: The application git repository revision
+  - name: APP_IMAGE_NAME
+    type: string
+    default: revanpeddi/spring-petclinic
+    description: The application image name
+  - name: APP_IMAGE_TAG
+    type: string
+    default: latest
+    description: The application image tag
+  - name: USERNAME
+    type: string
+    description: Openshift login username
+  - name: PASSWORD
+    type: string
+    description: Openshift login Password
+  tasks:
+  - name: build-java-app
+    taskRef:
+      name: build-java-app
+    params:
+    - name: buildRevision
+      value: $(params.APP_GIT_REVISION)
+    - name: appGitUrl
+      value: $(params.APP_GIT_URL)
+    - name: appImage
+      value: $(params.APP_IMAGE_NAME)
+    - name: appImageTag
+      value: $(params.APP_IMAGE_TAG)
+    workspaces:
+    - name: app-source
+      workspace: app-source
+      
+  - name: deploy-java-app
+    taskRef:
+      name: deploy-java-app
+    runAfter:
+      - build-java-app
+    params:
+    - name: DEPLOYMENT
+      value: $(params.APP_NAME)
+    - name: IMAGE_URL
+      value: $(params.APP_IMAGE_NAME):$(params.APP_IMAGE_TAG)
+    - name: USERNAME
+      value: $(params.USERNAME)
+    - name: PASSWORD
+      value: $(params.PASSWORD)

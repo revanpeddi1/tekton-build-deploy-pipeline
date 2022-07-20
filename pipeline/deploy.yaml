@@ -1,0 +1,45 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-java-app
+spec:
+  params:
+    - name: DEPLOYMENT
+      type: string 
+    - name: IMAGE_URL
+      type: string
+    - name: USERNAME
+      type: string
+    - name: PASSWORD
+      type: string 
+  steps:
+    - name: deploy
+      image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+      script: |
+        #!/usr/bin/env bash
+
+        echo "Deploying $(params.IMAGE_URL)"
+        oc login api.kubedev.cscglobal.com:6443 -u=$(params.USERNAME) -p=$(params.PASSWORD)
+        cat <<EOF | oc apply -f -
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: app-spring-petclinic
+          namespace: openshift-gitops
+        spec:
+          destination:
+            namespace: openshift-gitops
+            server: https://kubernetes.default.svc
+          project: default
+          source:
+            directory:
+              recurse: true
+            path: app
+            repoURL: https://github.com/siamaksade/openshift-gitops-getting-started.git
+            targetRevision: HEAD
+          syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
+        EOF
+        oc logout

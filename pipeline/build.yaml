@@ -1,0 +1,61 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-java-app
+spec:
+  params:
+  - name: buildRevision
+  - name: appGitUrl
+  - name: appImage
+  - name: appImageTag
+  workspaces:
+  - name: app-source
+
+  steps:
+  - name: git-checkout
+    image: alpine/git:v2.26.2
+    workingDir: "$(workspaces.app-source.path)"
+    script: |
+      #!/usr/bin/env sh
+      set -e
+      
+      git init
+      git remote add origin $(params.appGitUrl)
+      git fetch --depth 1 origin $(params.buildRevision)
+      git checkout FETCH_HEAD
+
+  # - name: build-sources
+  #   image: revanpeddi/maven-jdk14
+  #   workingDir: "$(workspaces.app-source.path)"
+  #   command:
+  #   - /usr/bin/mvn
+  #   args:
+  #   - clean
+  #   - package
+  
+  # - name: build-image
+  #   image: quay.io/buildah/stable
+  #   workingDir: "$(workspaces.app-source.path)"
+  #   command: ['buildah', 'bud', '--storage-driver=vfs', '--tls-verify=false', '--no-cache', '-f', 'Dockerfile', '-t', '$(params.appImage):$(params.appImageTag)', '.']
+  #   securityContext:
+  #      capabilities:
+  #        add:
+  #          - "SYS_ADMIN"
+  #          - "MKNOD"
+  #          - "SYS_CHROOT"
+  #          - "SETFCAP"
+  #      runAsUser: 0
+  #   volumeMounts:
+  #       - mountPath: /var/lib/containers
+  #         name: varlibcontainers
+  
+  # - name: build-push
+  #   image: quay.io/buildah/stable
+  #   command: ["buildah", "push", '--storage-driver=vfs', "--tls-verify=false", "$(params.appImage):$(params.appImageTag)", "docker://$(params.appImage):$(params.appImageTag)"]
+  #   volumeMounts:
+  #   - name: varlibcontainers
+  #     mountPath: /var/lib/containers
+  
+  # volumes:
+  #   - name: varlibcontainers
+---

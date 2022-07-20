@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-source-pvc
+spec:
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  storageClassName: silver-csi-retain
+  accessModes:
+    - ReadWriteOnce
+  #persistentVolumeReclaimPolicy: Recycle 
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spring-petclinic-maven-cache-pvc
+spec:
+  resources:
+    requests:
+      storage: 2Gi
+  volumeMode: Filesystem
+  storageClassName: silver-csi-retain
+  accessModes:
+    - ReadWriteOnce
+  #persistentVolumeReclaimPolicy: Retain 
