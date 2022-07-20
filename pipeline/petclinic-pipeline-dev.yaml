@@ -12,7 +12,7 @@ spec:
     description: The application deployment name
   - name: APP_GIT_URL
     type: string
-    default: https://github.com/revanpeddi1/realtimeproject.git
+    default: https://github.com/revanpeddi1/tekton-build-deploy-pipeline.git
     description: The application git repository url
   - name: APP_GIT_REVISION
     type: string
@@ -48,7 +48,7 @@ spec:
     workspaces:
     - name: app-source
       workspace: app-source
-      
+
   - name: deploy-java-app
     taskRef:
       name: deploy-java-app
